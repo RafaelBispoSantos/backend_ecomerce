@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url';
 
 dotenv.config();
 
-const PORT = process.env.PORT || 5000; // Adicionando a definição de PORT
+const PORT = process.env.PORT || 5000;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,6 +23,8 @@ const app = express();
 app.use(express.json({ limit: '100mb' }));
 app.use(cookieParser());
 
+// Conectar ao banco de dados
+connectDB();
 
 // Rotas da API
 app.use("/api/auth", authRoutes);
@@ -43,15 +45,19 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-// Para ambiente não-Vercel (desenvolvimento local)
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+// Verificação se estamos no ambiente Vercel
+const isVercel = process.env.VERCEL === '1';
+
+// Iniciar o servidor se não estivermos no Vercel
+if (!isVercel) {
   app.listen(PORT, () => {
-    console.log("server is running on http://localhost:" + PORT);
-    connectDB();
+    console.log(`Servidor rodando na porta ${PORT}`);
+    if (process.env.NODE_ENV === 'production') {
+      console.log(`Em produção: https://backend-ecomerce-11tb.onrender.com`);
+    } else {
+      console.log(`Em desenvolvimento: http://localhost:${PORT}`);
+    }
   });
-} else {
-  // Conectar ao banco de dados em ambiente de produção Vercel
-  connectDB();
 }
 
 // Exportar o app para uso com serverless na Vercel

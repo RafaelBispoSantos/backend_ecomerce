@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon backend/server.js",
     "start": "node backend/server.js",
-    "build": "node build.js "
+    
   },
   "keywords": ["ecommerce", "nodejs", "backend"],
   "author": "Seu Nome",

@@ -8,15 +8,10 @@ import cartRoutes from './routes/cart.route.js';
 import couponRoutes from './routes/coupon.route.js';
 import paymentRoutes from './routes/payment.route.js';
 import analyticsRoutes from "./routes/analytics.route.js";
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Inicializar o app Express
 const app = express();
@@ -34,16 +29,10 @@ app.use('/api/coupons', couponRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
-// Servir arquivos estáticos em produção
-if (process.env.NODE_ENV === "production") {
-  // Ajuste o caminho para alcançar a pasta dist do frontend
-  const frontendPath = path.resolve(__dirname, '../frontend/dist');
-  app.use(express.static(frontendPath));
-  
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(frontendPath, "index.html"));
-  });
-}
+// Adicionar uma rota básica para verificar se a API está funcionando
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok", message: "API is running" });
+});
 
 // Verificação se estamos no ambiente Vercel
 const isVercel = process.env.VERCEL === '1';
@@ -53,7 +42,7 @@ if (!isVercel) {
   app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     if (process.env.NODE_ENV === 'production') {
-      console.log(`Em produção: https://backend-ecomerce-11tb.onrender.com`);
+      console.log(`Em produção: https://ecommerce-story-api.onrender.com`);
     } else {
       console.log(`Em desenvolvimento: http://localhost:${PORT}`);
     }

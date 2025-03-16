@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "nodemon backend/server.js",
     "start": "node backend/server.js"
-    
   },
   "keywords": ["ecommerce", "nodejs", "backend"],
   "author": "Seu Nome",
@@ -29,6 +28,5 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
-    
   }
 }

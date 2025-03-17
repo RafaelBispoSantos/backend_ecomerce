@@ -63,31 +63,60 @@ export const signup = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-   try {
-    const {email, password} = req.body;
-    const user = await User.findOne({email});
-    if(user && (await user.comparePassword(password))){
-        const {accessToken, refreshToken} = generateToken(user._id);
-
-        await storeRefreshToken(user._id, refreshToken);
-        setCookies(res, accessToken, refreshToken);
-
-        res.json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-        })
+    try {
+       const { email, password } = req.body;
+ 
+       // Verifica se o corpo da requisição contém email e senha
+       if (!email || !password) {
+          console.log("Missing email or password in the request body");
+          return res.status(400).json({ message: "Email and password are required" });
+       }
+ 
+       console.log(`Attempting login for user: ${email}`);
+ 
+       // Verifica se o usuário existe no banco de dados
+       const user = await User.findOne({ email });
+       if (!user) {
+          console.log(`User not found: ${email}`);
+          return res.status(401).json({ message: "Invalid credentials" });
+       }
+       console.log(`User found: ${user._id}`);
+ 
+       // Verifica se a senha está correta
+       const isPasswordValid = await user.comparePassword(password);
+       if (!isPasswordValid) {
+          console.log(`Invalid password for user: ${email}`);
+          return res.status(401).json({ message: "Invalid credentials" });
+       }
+ 
+       console.log(`Password is valid for user: ${email}`);
+ 
+       // Gera os tokens de acesso e refresh
+       const { accessToken, refreshToken } = generateToken(user._id);
+       console.log(`Generated accessToken and refreshToken for user: ${email}`);
+ 
+       // Armazena o refreshToken no Redis
+       await storeRefreshToken(user._id, refreshToken);
+       console.log(`Stored refreshToken in Redis for user: ${user._id}`);
+ 
+       // Configura os cookies com os tokens
+       setCookies(res, accessToken, refreshToken);
+       console.log("Cookies set with accessToken and refreshToken");
+ 
+       // Responde com os dados do usuário
+       res.json({
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+       });
+ 
+    } catch (error) {
+       console.log("Error in login controller:", error.message);
+       res.status(500).json({ message: error.message });
     }
-    else{
-        res.status(401).json({ message: "Invalid credentials" });
-    }
-
-   } catch (error) {
-    console.log("Error in login controller", error.message);
-    res.status(500).json({ message: error.message });
-   }
-};
+ };
+ 
 
 export const logout = async (req, res) => {
     try {

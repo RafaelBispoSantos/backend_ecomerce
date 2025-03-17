@@ -2,9 +2,9 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import Redis from 'ioredis';
 import authRoutes from './routes/auth.route.js';
 import { connectDB } from './lib/db.js';
+import { redis } from './lib/redis.js'; // Importar a instância Redis já configurada
 import productRoutes from './routes/product.route.js';
 import cartRoutes from './routes/cart.route.js';
 import couponRoutes from './routes/coupon.route.js';
@@ -22,10 +22,8 @@ const app = express();
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
     ? [
-        
-        'http://localhost:5173/',
-        // Adicione seu frontend em produção aqui
-        // 'https://seu-frontend.com'
+        'https://seu-frontend.com', // Adicione seu frontend em produção
+        // Adicione outros domínios permitidos em produção
       ]
     : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5000'],
   credentials: true,
@@ -43,18 +41,14 @@ app.use(cookieParser());
 // Conectar ao banco de dados
 connectDB();
 
-// Configurar Redis com ioredis
-const redisClient = new Redis(process.env.UPSTASH_REDIS_URL, {
-  tls: {
-    rejectUnauthorized: false, // Configuração necessária para conexões seguras no Upstash
-  },
-});
-
-redisClient.on('connect', () => console.log('Conectado ao Redis com sucesso!'));
-redisClient.on('error', (err) => console.error('Erro ao conectar ao Redis:', err));
-
-// Compartilhar cliente Redis com outras partes da aplicação
-export { redisClient as redis };
+// Middleware para depuração (em ambiente não-produção)
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`);
+    console.log('Cookies:', req.cookies);
+    next();
+  });
+}
 
 // Testar conexão com Redis
 app.get('/api/test-redis', async (req, res) => {
@@ -63,9 +57,8 @@ app.get('/api/test-redis', async (req, res) => {
     const testValue = 'test-value';
     
     // Testar set e get
-    await redisClient.set(testKey, testValue);
-    console.log("Valor definido com sucesso!");
-    const value = await redisClient.get(testKey);
+    await redis.set(testKey, testValue);
+    const value = await redis.get(testKey);
     
     res.status(200).json({ message: 'Redis está funcionando!', value });
   } catch (error) {
@@ -73,16 +66,6 @@ app.get('/api/test-redis', async (req, res) => {
     res.status(500).json({ error: 'Erro ao conectar ao Redis', details: error.message });
   }
 });
-
-// Middleware para depuração (em ambiente não-produção)
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req, res, next) => {
-    console.log(`${req.method} ${req.path}`);
-    console.log('Cookies:', req.cookies);
-    console.log('Headers:', req.headers);
-    next();
-  });
-}
 
 // Rotas da API
 app.use('/api/auth', authRoutes);
@@ -92,29 +75,15 @@ app.use('/api/coupons', couponRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
-// Adicionar uma rota básica para verificar se a API está funcionando
+// Rota de verificação de saúde da API
 app.get('/api/health', (req, res) => {
   res.status(200).json({ 
     status: 'ok', 
-    message: 'API is running',
+    message: 'API está funcionando',
     environment: process.env.NODE_ENV || 'development',
     time: new Date().toISOString()
   });
 });
-
-// Rota para depuração de cookies em ambiente não-produção
-if (process.env.NODE_ENV !== 'production') {
-  app.get('/api/debug-cookies', (req, res) => {
-    res.json({ 
-      cookies: req.cookies,
-      headers: {
-        origin: req.headers.origin,
-        referer: req.headers.referer,
-        host: req.headers.host
-      }
-    });
-  });
-}
 
 // Verificação se estamos no ambiente Vercel
 const isVercel = process.env.VERCEL === '1';

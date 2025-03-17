@@ -22,7 +22,7 @@ const app = express();
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
     ? [
-        'https://backend-ecomerce-v2t8.onrender.com', 
+        
         'http://localhost:5173/',
         // Adicione seu frontend em produção aqui
         // 'https://seu-frontend.com'

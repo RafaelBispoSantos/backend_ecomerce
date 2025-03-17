@@ -1,13 +1,14 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.route.js';
 import { connectDB } from './lib/db.js';
-import cookieParser from 'cookie-parser';
 import productRoutes from './routes/product.route.js';
 import cartRoutes from './routes/cart.route.js';
 import couponRoutes from './routes/coupon.route.js';
 import paymentRoutes from './routes/payment.route.js';
-import analyticsRoutes from "./routes/analytics.route.js";
+import analyticsRoutes from './routes/analytics.route.js';
 
 dotenv.config();
 
@@ -15,6 +16,17 @@ const PORT = process.env.PORT || 5000;
 
 // Inicializar o app Express
 const app = express();
+
+// Configurar CORS
+const corsOptions = {
+  origin: [
+    'http://localhost:5173', // Frontend em desenvolvimento
+    //'https://frontend-seu-dominio.com', // Substitua pela URL do frontend em produção
+  ],
+  credentials: true, // Permitir cookies e cabeçalhos de autenticação
+};
+app.use(cors(corsOptions));
+
 app.use(express.json({ limit: '100mb' }));
 app.use(cookieParser());
 

@@ -7,7 +7,11 @@
     "dev": "nodemon backend/server.js",
     "start": "node backend/server.js"
   },
-  "keywords": ["ecommerce", "nodejs", "backend"],
+  "keywords": [
+    "ecommerce",
+    "nodejs",
+    "backend"
+  ],
   "author": "Seu Nome",
   "type": "module",
   "license": "ISC",
@@ -19,6 +23,7 @@
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.5.1",
     "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "ioredis": "^5.5.0",

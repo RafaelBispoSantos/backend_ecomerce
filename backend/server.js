@@ -22,8 +22,7 @@ const app = express();
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
     ? [
-        'http://localhost:5173', // Adicione seu frontend em produção
-        // Adicione outros domínios permitidos em produção
+        'http://localhost:5173',
       ]
     : [ 'http://localhost:3000', 'http://localhost:5000'],
   credentials: true,

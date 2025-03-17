@@ -3,8 +3,8 @@ import User from "../models/user.model.js";
 
 export const protectRoute = async (req, res, next) => {
   try {
-    // Obter token de cookies ou do cabeçalho Authorization
-    const token = req.cookies.token || req.header('Authorization')?.replace('Bearer ', '');
+    // Ajuste aqui para usar o nome correto do cookie
+    const token = req.cookies.access_token || req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
       console.log('Nenhum token fornecido. Cookies:', req.cookies, 'Headers:', req.headers);
@@ -12,7 +12,6 @@ export const protectRoute = async (req, res, next) => {
     }
     
     try {
-      // Usar 'token' em vez de 'accessToken'
       const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
       const user = await User.findById(decoded.userId).select("-password");
       

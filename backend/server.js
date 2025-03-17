@@ -89,8 +89,7 @@ const isVercel = process.env.VERCEL === '1';
 
 // Iniciar o servidor se não estivermos no Vercel
 if (!isVercel) {
-  app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
+  app.listen(PORT, () => {   
     if (process.env.NODE_ENV === 'production') {
       console.log(`Em produção: https://backend-ecomerce-v2t8.onrender.com`);
     } else {

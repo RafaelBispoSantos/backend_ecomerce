@@ -3,7 +3,12 @@ import User from "../models/user.model.js";
 
 export const protectRoute = async (req, res, next) => {
   try {
-    const  accessToken = req.cookies.access_token;
+    const token = req.cookies.token || req.header('Authorization')?.replace('Bearer ', '');
+
+    if (!token) {
+      console.log('Nenhum token fornecido. Cookies:', req.cookies, 'Headers:', req.headers);
+      return res.status(401).json({ message: 'Acesso negado. Nenhum token fornecido.' });
+    }
    
     if (!accessToken) {
       return res

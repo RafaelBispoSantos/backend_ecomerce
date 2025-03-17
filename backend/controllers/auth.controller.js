@@ -19,17 +19,21 @@ const storeRefreshToken = async (userId, refreshToken) => {
 };
 
 const setCookies = (res, accessToken, refreshToken) => {
-    res.cookie("access_token", accessToken, {
+    // Aqui estava o erro: usando 'token' em vez de 'accessToken'
+    res.cookie('access_token', accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-         sameSite: process.env.NODE_ENV === "production" ? "strict" : "Lax",
-        maxAge: 15 * 60 * 1000, // 15 minutos
+        expires: new Date(Date.now() + 15 * 60 * 1000), // 15 minutos
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/'
     });
+    
     res.cookie("refresh_token", refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-         sameSite: process.env.NODE_ENV === "production" ? "strict" : "Lax",
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Alterado para 'none' em produção para funcionar com CORS
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
+        path: '/'
     });
 };
 
@@ -58,6 +62,7 @@ export const signup = async (req, res) => {
             message: 'User created successfully'
         });
     } catch (error) {
+        console.error("Error in signup controller:", error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -115,9 +120,8 @@ export const login = async (req, res) => {
        console.log("Error in login controller:", error.message);
        res.status(500).json({ message: error.message });
     }
- };
+};
  
-
 export const logout = async (req, res) => {
     try {
         const refreshToken = req.cookies.refresh_token;
@@ -127,19 +131,31 @@ export const logout = async (req, res) => {
             await redis.del(`refresh_token:${decoded.userId}`);
         }
 
-        res.clearCookie("access_token");
-        res.clearCookie("refresh_token");
+        // Use as mesmas configurações dos cookies para limpá-los corretamente
+        res.clearCookie("access_token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            path: '/'
+        });
+        
+        res.clearCookie("refresh_token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            path: '/'
+        });
 
         res.json({ message: "Logged out successfully" });
     } catch (error) {
+        console.error("Error in logout controller:", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };
 
-
 export const refreshTokens = async (req, res) => {
     try {
-        const refreshToken = req.cookies.refresh_token; // Certifique-se de que o nome corresponde ao definido em setCookies
+        const refreshToken = req.cookies.refresh_token;
 
         if (!refreshToken) {
             return res.status(401).json({ message: "No refresh token provided" });
@@ -166,11 +182,12 @@ export const refreshTokens = async (req, res) => {
             { expiresIn: '15m' }
         );
 
-        // Atualize o cookie com o novo accessToken
+        // Atualize o cookie com o novo accessToken usando a função setCookies
         res.cookie("access_token", accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            path: '/',
             maxAge: 15 * 60 * 1000, // 15 minutos
         });
 
@@ -186,9 +203,10 @@ export const refreshTokens = async (req, res) => {
 };
 
 export const getProfile = async (req, res) => {
-	try {
-		res.json(req.user);
-	} catch (error) {
-		res.status(500).json({ message: "Server error", error: error.message });
-	}
+    try {
+        res.json(req.user);
+    } catch (error) {
+        console.error("Error in getProfile controller:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
 };

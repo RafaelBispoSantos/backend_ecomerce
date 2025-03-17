@@ -22,7 +22,7 @@ const app = express();
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
     ? [
-        'http://localhost:5173',
+        'https://frontend-ecommerce-mu-six.vercel.app/',
       ]
     : [ 'http://localhost:3000', 'http://localhost:5000'],
   credentials: true,
